@@ -554,8 +554,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-banner');
   grunt.loadNpmTasks('grunt-rename');
   grunt.loadNpmTasks("grunt-remove-logging");
-  grunt.loadNpmTasks('grunt-browser-sync');
-  grunt.loadNpmTasks('grunt-contrib-testem');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   // define the tasks
   grunt.registerTask(

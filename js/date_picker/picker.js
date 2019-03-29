@@ -612,11 +612,10 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
             $ELEMENT.
 
                 // On focus/click, focus onto the root to open it up.
-                on( 'focus.' + STATE.id + ' click.' + STATE.id, function( event ) {
+                on( 'focus.' + STATE.id + ' click.' + STATE.id, debounce(function(event) {
                     event.preventDefault()
-                    P.$root[0].focus()
-                }).
-
+                    P.$root.eq(0).focus()
+                }, 100)).
                 // Handle keyboard event based on the picker being opened or not.
                 on( 'keydown.' + STATE.id, handleKeydownEvent )
         }
@@ -916,6 +915,21 @@ function getScrollbarWidth() {
     return widthWithoutScroll - widthWithScroll
 }
 
+// taken from https://davidwalsh.name/javascript-debounce-function
+function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+        var later = function() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+}
 
 
 /**

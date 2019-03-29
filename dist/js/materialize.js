@@ -1,5 +1,5 @@
 /*!
- * Materialize v0.97.2 (http://materializecss.com)
+ * Materialize vundefined (http://materializecss.com)
  * Copyright 2014-2015 Materialize
  * MIT License (https://raw.githubusercontent.com/Dogfalo/materialize/master/LICENSE)
  */
@@ -4460,8 +4460,10 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
                 // On focus/click, focus onto the root to open it up.
                 on( 'focus.' + STATE.id + ' click.' + STATE.id, function( event ) {
-                    event.preventDefault()
-                    P.$root[0].focus()
+                    debounce(function(event) {
+                      event.preventDefault()
+                      P.$root.eq(0).focus()
+                    }, 100)
                 }).
 
                 // Handle keyboard event based on the picker being opened or not.
@@ -4763,6 +4765,21 @@ function getScrollbarWidth() {
     return widthWithoutScroll - widthWithScroll
 }
 
+// taken from https://davidwalsh.name/javascript-debounce-function
+function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+        var later = function() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+}
 
 
 /**
