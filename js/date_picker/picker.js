@@ -40,7 +40,8 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
         // The state of the picker.
         STATE = {
-            id: ELEMENT.id || 'P' + Math.abs( ~~(Math.random() * new Date()) )
+            id: ELEMENT.id || 'P' + Math.abs( ~~(Math.random() * new Date()) ),
+            handlingOpen: false,
         },
 
 
@@ -250,6 +251,17 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
                     // Bind the document events.
                     $document.on( 'click.' + STATE.id + ' focusin.' + STATE.id, function( event ) {
+                        // If the picker is currently midway through processing
+                        // the opening sequence of events then don't handle clicks
+                        // on any part of the DOM. This is caused by a bug in Chrome 73
+                        // where a click event is being generated with the incorrect
+                        // path in it.
+                        // In short, if someone does a click that finishes after the
+                        // new element is created then the path contains only the
+                        // parent element and not the input element itself.
+                        if (STATE.handlingOpen) {
+                          return;
+                        }
 
                         var target = event.target
 
@@ -603,19 +615,35 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
             val( $ELEMENT.data('value') ?
                 P.get('select', SETTINGS.format) :
                 ELEMENT.value
-            )
+            ).
 
+            // On focus/click, focus onto the root to open it up.
+            on( 'focus.' + STATE.id + ' click.' + STATE.id, debounce(function(event) {
+                event.preventDefault()
+                P.$root.eq(0).focus()
+            }, 100)).
+
+            // Mousedown handler to capture when the user starts interacting
+            // with the picker. This is used in working around a bug in Chrome 73.
+            on('mousedown', function() {
+              STATE.handlingOpen = true;
+              var handler = function() {
+                // By default mouseup events are fired before a click event.
+                // By using a timeout we can force the mouseup to be handled
+                // after the corresponding click event is handled.
+                setTimeout(function() {
+                  $(document).off('mouseup', handler);
+                  STATE.handlingOpen = false;
+                }, 0);
+              };
+              $(document).on('mouseup', handler);
+            });
 
         // Only bind keydown events if the element isn’t editable.
         if ( !SETTINGS.editable ) {
 
             $ELEMENT.
 
-                // On focus/click, focus onto the root to open it up.
-                on( 'focus.' + STATE.id + ' click.' + STATE.id, debounce(function(event) {
-                    event.preventDefault()
-                    P.$root.eq(0).focus()
-                }, 100)).
                 // Handle keyboard event based on the picker being opened or not.
                 on( 'keydown.' + STATE.id, handleKeydownEvent )
         }
